@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fret — how it works</title>
+<style>
+  :root{
+    --ink:#0A0A0A;
+    --raise:#141414;
+    --raise2:#1B1B1B;
+    --rule:#2A2A2A;
+    --rule-hi:#3B3B3B;
+    --sage:#6B9E6B;
+    --sage-dim:#1A2A1A;
+    --brass:#C8A84A;
+    --brass-dim:#1E1A0A;
+    --amber:#A07840;
+    --rose:#1C0F07;
+    --rose-edge:#5A3418;
+    --bone:#E8E4DC;
+    --bone-2:#A8A49C;
+    --bone-3:#6E6A64;
+    --string:#C8A84A;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; margin:0; padding:0; }
+
+  html{ background:var(--ink); scroll-behavior:smooth; }
+  @media (prefers-reduced-motion:reduce){ html{ scroll-behavior:auto; } }
+
+  body{
+    background:var(--ink); color:var(--bone);
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:16px; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+  }
+
+  code,.mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+
+  code{
+    background:var(--raise2); border:1px solid var(--rule);
+    padding:.08em .4em; border-radius:3px;
+    font-size:.86em; color:var(--bone-2);
+    white-space:nowrap;
+  }
+
+  a{ color:var(--brass); text-decoration:none; border-bottom:1px solid rgba(200,168,74,.35); }
+  a:hover{ border-bottom-color:var(--brass); }
+  a:focus-visible,button:focus-visible{ outline:2px solid var(--brass); outline-offset:3px; }
+
+  /* ── shell ── */
+  .shell{ display:grid; grid-template-columns:216px minmax(0,1fr); max-width:1120px; margin:0 auto; }
+
+  nav{
+    position:sticky; top:0; align-self:start; height:100vh;
+    padding:38px 20px 38px 24px; overflow-y:auto;
+    border-right:1px solid var(--rule);
+  }
+  .nav-mark{
+    font-size:13px; font-weight:700; letter-spacing:.22em;
+    color:var(--bone); margin-bottom:26px;
+  }
+  nav ol{ list-style:none; display:flex; flex-direction:column; gap:1px; }
+  nav a{
+    display:block; padding:5px 0 5px 13px; font-size:13.5px;
+    color:var(--bone-3); border:0; border-left:1px solid var(--rule);
+    transition:color .13s, border-color .13s;
+  }
+  nav a:hover{ color:var(--bone); border-left-color:var(--sage); }
+  nav .sub a{ padding-left:24px; font-size:12.5px; }
+
+  main{ padding:62px 46px 140px; min-width:0; }
+
+  /* ── hero ── */
+  .hero{ margin-bottom:64px; }
+  .hero h1{
+    font-size:clamp(38px,6vw,62px); font-weight:600;
+    letter-spacing:-.035em; line-height:1; margin-bottom:16px;
+  }
+  .hero p{ font-size:18px; color:var(--bone-2); max-width:62ch; }
+  .hero-board{ margin-top:34px; display:flex; align-items:flex-end; gap:22px; flex-wrap:wrap; }
+  .hero-cap{ font-size:12.5px; color:var(--bone-3); max-width:26ch; line-height:1.6; }
+
+  /* ── chord diagram, built in CSS ── */
+  .chart{
+    background:var(--rose); border:1px solid var(--rose-edge);
+    border-radius:6px; padding:11px 13px 8px; position:relative;
+    display:inline-block;
+  }
+  .chart-row{ display:flex; align-items:center; height:16px; position:relative; }
+  .chart-line{ position:absolute; left:0; right:0; border-radius:1px; background:var(--string); }
+  .chart-cells{ display:flex; }
+  .chart-cell{
+    width:20px; height:16px; border-right:1px solid #3E3E3E;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .chart-cell:last-child{ border-right:0; }
+  .chart-dot{ width:10px; height:10px; border-radius:50%; background:var(--sage); border:1.5px solid var(--amber); }
+  .chart-mark{
+    position:absolute; left:-13px; font-size:9px; font-weight:700;
+    color:var(--bone-3); top:50%; transform:translateY(-50%);
+  }
+  .chart-mark.o{ color:var(--brass); }
+  .chart-nums{ display:flex; padding-top:3px; }
+  .chart-nums span{ width:20px; text-align:center; font-size:8px; color:rgba(255,255,255,.28); }
+
+  /* ── sections ── */
+  section{ margin-bottom:58px; scroll-margin-top:24px; }
+  h2{
+    font-size:26px; font-weight:600; letter-spacing:-.02em;
+    padding-bottom:11px; margin-bottom:6px;
+    border-bottom:1px solid var(--rule);
+    display:flex; align-items:baseline; gap:12px;
+  }
+  h2 .route{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px; font-weight:400; color:var(--sage);
+    background:var(--sage-dim); border:1px solid rgba(107,158,107,.3);
+    padding:2px 7px; border-radius:4px; letter-spacing:0;
+  }
+  .lede{ color:var(--bone-2); max-width:70ch; margin-bottom:22px; font-size:16.5px; }
+
+  h3{
+    font-size:16px; font-weight:600; margin:28px 0 8px;
+    color:var(--bone);
+  }
+  p{ max-width:70ch; margin-bottom:13px; color:var(--bone-2); }
+  p strong{ color:var(--bone); font-weight:600; }
+
+  ul{ max-width:70ch; margin:0 0 14px 0; list-style:none; }
+  ul li{
+    position:relative; padding-left:19px; margin-bottom:7px; color:var(--bone-2);
+  }
+  ul li::before{
+    content:''; position:absolute; left:2px; top:.62em;
+    width:5px; height:5px; border-radius:50%;
+    background:var(--rule-hi);
+  }
+  ul li strong{ color:var(--bone); font-weight:600; }
+
+  /* ── quirk callout: marked like the X / O above a chord chart ── */
+  .quirk{
+    display:grid; grid-template-columns:26px minmax(0,1fr); gap:13px;
+    background:var(--raise); border:1px solid var(--rule);
+    border-left:2px solid var(--brass);
+    border-radius:0 6px 6px 0; padding:13px 15px;
+    margin:16px 0; max-width:70ch;
+  }
+  .quirk-mark{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:15px; font-weight:700; color:var(--brass);
+    line-height:1.5; text-align:center;
+  }
+  .quirk.watch{ border-left-color:var(--amber); }
+  .quirk.watch .quirk-mark{ color:var(--amber); }
+  .quirk p{ margin:0; font-size:14.5px; max-width:none; }
+  .quirk p + p{ margin-top:8px; }
+
+  /* ── key/value list for shortcuts ── */
+  .keys{ max-width:70ch; margin:14px 0; border-top:1px solid var(--rule); }
+  .keys div{
+    display:grid; grid-template-columns:150px minmax(0,1fr); gap:16px;
+    padding:8px 0; border-bottom:1px solid var(--rule); align-items:baseline;
+  }
+  .keys dt{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:13px; color:var(--brass);
+  }
+  .keys dd{ font-size:14.5px; color:var(--bone-2); }
+
+  /* ── literal text sample, e.g. a chord chart ── */
+  pre{
+    background:var(--rose); border:1px solid var(--rose-edge);
+    border-radius:6px; padding:15px 17px; margin:15px 0;
+    overflow-x:auto; max-width:70ch;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:13px; line-height:1.75; color:var(--bone);
+  }
+  pre .c{ color:var(--brass); font-weight:700; }
+  pre .s{ color:var(--sage); font-weight:700; }
+
+  footer{
+    margin-top:80px; padding-top:22px; border-top:1px solid var(--rule);
+    font-size:13px; color:var(--bone-3); max-width:70ch;
+  }
+
+  /* ── mobile ── */
+  @media (max-width:820px){
+    .shell{ grid-template-columns:minmax(0,1fr); }
+    nav{
+      position:static; height:auto; border-right:0;
+      border-bottom:1px solid var(--rule);
+      padding:20px 18px 16px;
+    }
+    .nav-mark{ margin-bottom:12px; }
+    nav ol{ flex-direction:row; flex-wrap:wrap; gap:5px 6px; }
+    nav a{
+      border-left:0; border:1px solid var(--rule); border-radius:5px;
+      padding:5px 10px; font-size:12.5px;
+    }
+    nav a:hover{ border-color:var(--sage); }
+    nav .sub{ display:none; }
+    main{ padding:32px 18px 90px; }
+    h2{ font-size:22px; flex-wrap:wrap; gap:8px; }
+    .keys div{ grid-template-columns:minmax(0,1fr); gap:2px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+<nav>
+  <div class="nav-mark">FRET</div>
+  <ol>
+    <li><a href="#start">Start here</a></li>
+    <li><a href="#lab">Lab</a></li>
+    <li><a href="#practice">Practice</a></li>
+    <li><a href="#strum">Strum</a></li>
+    <li><a href="#lyrics">Lyrics</a></li>
+    <li><a href="#import">Import</a></li>
+    <li><a href="#settings">Shared settings</a></li>
+    <li><a href="#offline">Offline &amp; install</a></li>
+    <li><a href="#quirks">Every quirk</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="hero">
+  <h1>How Fret works</h1>
+  <p>A guitar fretboard, a chord identifier, a song builder, a chord-sheet reader and an
+     ear trainer. No account, no ads, no server. Everything you make stays on the device
+     you made it on.</p>
+
+  <div class="hero-board">
+    <div class="chart" aria-label="C major chord diagram">
+      <div class="chart-row">
+        <span class="chart-mark">&times;</span>
+        <div class="chart-line" style="height:2.6px;top:6.7px"></div>
+        <div class="chart-cells">
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+          <div class="chart-cell"></div>
+        </div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-line" style="height:2.2px;top:6.9px"></div>
+        <div class="chart-cells">
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+          <div class="chart-cell"><div class="chart-dot"></div></div>
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+        </div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-line" style="height:1.9px;top:7.05px"></div>
+        <div class="chart-cells">
+          <div class="chart-cell"></div>
+          <div class="chart-cell"><div class="chart-dot"></div></div>
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+          <div class="chart-cell"></div>
+        </div>
+      </div>
+      <div class="chart-row">
+        <span class="chart-mark o">o</span>
+        <div class="chart-line" style="height:1.5px;top:7.25px"></div>
+        <div class="chart-cells">
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+          <div class="chart-cell"></div>
+        </div>
+      </div>
+      <div class="chart-row">
+        <div class="chart-line" style="height:1.2px;top:7.4px"></div>
+        <div class="chart-cells">
+          <div class="chart-cell"><div class="chart-dot"></div></div>
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+        </div>
+      </div>
+      <div class="chart-row">
+        <span class="chart-mark o">o</span>
+        <div class="chart-line" style="height:1px;top:7.5px"></div>
+        <div class="chart-cells">
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+          <div class="chart-cell"></div><div class="chart-cell"></div>
+          <div class="chart-cell"></div>
+        </div>
+      </div>
+      <div class="chart-nums"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+    </div>
+    <p class="hero-cap">Diagrams read the same everywhere in the app: <span class="mono">&times;</span>
+       means don't play that string, <span class="mono" style="color:var(--brass)">o</span> means play it open.</p>
+  </div>
+</header>
+
+
+<section id="start">
+  <h2>Start here</h2>
+  <p class="lede">Two things to know before you build anything you'd be sad to lose.</p>
+
+  <h3>Your work lives in this browser</h3>
+  <p>There is no account and nothing is uploaded. Songs, chord sheets, saved chords, drill
+     scores and settings are stored by the browser you're using. That's why the app is fast
+     and works with the internet off — and it's why the same songs won't appear on your phone
+     if you made them on a laptop.</p>
+  <p>Clearing your browsing data erases everything. Refreshing, closing the tab and restarting
+     the device are all safe.</p>
+
+  <div class="quirk">
+    <div class="quirk-mark">o</div>
+    <div>
+      <p><strong>Back up now, not later.</strong> Every page has <strong>Back up all</strong> in
+         the sidebar. It downloads one file holding your songs, sheets, saved chords and scores.
+         <strong>Restore</strong> reads it back and asks whether to merge or replace before
+         touching anything.</p>
+      <p>That file is also how you move everything to another device — email it to yourself and
+         restore on the other end.</p>
+    </div>
+  </div>
+
+  <h3>Muted, open and fretted are three different things</h3>
+  <p>Every string is in one of three states, and the app treats them as genuinely distinct.
+     A muted string contributes nothing to the chord; an open string sounds. If a chord isn't
+     being named the way you expect, a string is usually open when you meant it muted.</p>
+
+  <div class="keys">
+    <div><dt>&times;</dt><dd>Muted — not played, ignored when naming the chord</dd></div>
+    <div><dt>o</dt><dd>Open — played with nothing fretted, counts towards the chord</dd></div>
+    <div><dt>&#9679;</dt><dd>Fretted at the marked fret</dd></div>
+  </div>
+</section>
+
+
+<section id="lab">
+  <h2>Lab <span class="route">/</span></h2>
+  <p class="lede">The fretboard. Put your fingers somewhere and find out what you're playing,
+     or type a chord name and find out where the fingers go.</p>
+
+  <h3>Putting notes on the board</h3>
+  <ul>
+    <li>Click any fret to place a dot. Click the same fret again to clear that string back to open.</li>
+    <li>Click the string letter on the headstock to mute it. Click again to unmute.</li>
+    <li><strong>Shift-click</strong> any fret cell to mute that string without hunting for the headstock.</li>
+    <li>Type a name — <code>Am</code>, <code>Cadd9</code>, <code>F#m7</code>, <code>Bbmaj7</code>,
+        <code>G13</code> — and press <strong>Show on board</strong>.</li>
+  </ul>
+
+  <h3>What it tells you back</h3>
+  <p>The chord name appears as you play, with a plain-English note on how it sounds and a
+     difficulty rating. Barre chords draw as a single bar with the finger number on it,
+     rather than separate dots, because that's what your hand actually does.</p>
+
+  <div class="quirk">
+    <div class="quirk-mark">o</div>
+    <div>
+      <p><strong>It accepts chords with notes missing.</strong> Guitarists drop the fifth
+         constantly. Play one and Fret still names it, with the missing note in brackets —
+         <span class="mono">G (no D)</span> — instead of refusing to recognise it.</p>
+    </div>
+  </div>
+
+  <div class="quirk">
+    <div class="quirk-mark">o</div>
+    <div>
+      <p><strong>One note short and it offers to finish.</strong> If what you've placed is a
+         single note away from a real chord, a card appears naming the chord and telling you
+         exactly where to put the missing finger. Accept it or dismiss it.</p>
+    </div>
+  </div>
+
+  <h3>Finding an easier way to play something</h3>
+  <p><strong>Another way to play it</strong> cycles through every playable voicing of the
+     current chord, ranked so the easiest comes first. The line beside it tells you which
+     one you're on and whether something easier exists. <strong>Easier version</strong> jumps
+     straight to the simplest shape.</p>
+
+  <h3>Tuner</h3>
+  <p>The <strong>Tuner</strong> button below the fretboard opens a panel. Press
+     <strong>Start listening</strong> — the microphone is only requested at that moment, never
+     on page load — then play one string at a time. You get the note, the frequency, how many
+     cents sharp or flat, and a needle that centres when you're right.</p>
+  <p>The six string targets follow whatever tuning and capo you've set, so with a capo on the
+     third fret the low E target becomes G. Tap any target to hear a reference tone.</p>
+
+  <div class="quirk watch">
+    <div class="quirk-mark">&times;</div>
+    <div>
+      <p><strong>Microphone access needs a real click.</strong> Browsers refuse it otherwise.
+         If you blocked it by accident you'll need to re-allow Fret in your browser's site
+         settings — the app can't re-ask.</p>
+    </div>
+  </div>
+
+  <h3>Saving chords</h3>
+  <p><strong>Save chord</strong> adds the current shape to the strip at the bottom. Click any
+     saved chord to load it back. From there, <strong>Print sheet</strong> makes a clean
+     printable page of diagrams, and <strong>Send to Strum</strong> turns the whole strip into
+     a playable song.</p>
+</section>
+
+
+<section id="practice">
+  <h2>Practice <span class="route">/practice</span></h2>
+  <p class="lede">Five modes. Three test whether you know a chord, one builds the skill
+     everyone gets stuck on, and one shows whether any of it is working.</p>
+
+  <h3>Hear a chord · Hear a note · See a chord</h3>
+  <p>Fret plays or draws something and you identify it from four options. Difficulty moves you
+     from open chords through barre chords to extended shapes. After each answer you see where
+     those notes sit on the full neck and on a piano keyboard.</p>
+
+  <div class="quirk">
+    <div class="quirk-mark">o</div>
+    <div>
+      <p><strong>Tap or play it.</strong> On <strong>See a chord</strong> and
+         <strong>Hear a note</strong> there's a small toggle. Switch to <strong>Play it</strong>
+         and the answer buttons are replaced by a microphone: play the chord on your guitar and
+         Fret listens.</p>
+      <p>It's forgiving on purpose — any voicing, any octave. It's listening for the right notes,
+         not the exact shape it drew. The target notes light up as it hears them, and holding a
+         correct chord for about half a second counts it.</p>
+    </div>
+  </div>
+
+  <h3>Chord changes</h3>
+  <p>The one-minute-changes exercise, which is how guitar teachers actually fix the beginner
+     wall. Pick two chords, hit start, and switch between them as many times as you cleanly can
+     in sixty seconds. Tap anywhere on the big area each time you change — the highlight flips
+     so you always know which chord you're heading to.</p>
+  <p>Scores save per pair, so next session you're chasing your own number. Only count a change
+     if it rang cleanly; the app can't hear buzzing, so that part is on you.</p>
+
+  <h3>Progress</h3>
+  <p>Everything you've done, gathered in one place: days practised, total questions and accuracy,
+     a bar chart of your recent drill runs with personal bests in gold, and every chord pair you've
+     drilled ranked <strong>weakest first</strong>.</p>
+  <p>That ranking is the useful part. The pairs at the top are the ones to drill next.</p>
+
+  <div class="quirk watch">
+    <div class="quirk-mark">&times;</div>
+    <div>
+      <p><strong>Progress fills up slowly, and that's the point.</strong> A session is banked when
+         you switch mode, change difficulty or leave the page. One evening of use won't tell you
+         much. Two weeks will.</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="strum">
+  <h2>Strum <span class="route">/strum</span></h2>
+  <p class="lede">Build a song out of chords, give it a tempo and a strumming pattern, and
+     listen back. Export it as audio if you want to keep it.</p>
+
+  <h3>Writing a song by typing it</h3>
+  <p>The fastest way in is the text box. One section per line:</p>
+  <pre><span class="s">Verse:</span>  <span class="c">Am D7 C E</span> x2
+<span class="s">Chorus:</span> <span class="c">Cadd9 Bm G D</span>
+<span class="s">Bridge:</span> <span class="c">Fmaj7 Em Am</span></pre>
+  <p>The section name and the <code>x2</code> are both optional. <strong>Build song</strong>
+     replaces everything; <strong>Append</strong> adds to the end. Chords it can't read are
+     listed rather than silently dropped.</p>
+  <p>Each section also has its own small input, so you can add to one section without
+     retyping the rest.</p>
+
+  <h3>Sections and repeats</h3>
+  <p>A song is a list of sections, each with its own chords, repeat count and strumming pattern.
+     Reorder them with the arrows, duplicate one with <strong>Copy</strong>, rename by clicking
+     the title. The repeat count means a verse can play twice before the chorus without you
+     entering it twice.</p>
+
+  <h3>Length is measured in beats</h3>
+  <p>Set the song's tempo in <strong>BPM</strong>, or tap <strong>Tap</strong> four times at the
+     speed you want. Chord lengths are then musical — one beat, half a bar, one bar, two bars —
+     rather than arbitrary seconds. Click a chord's length label to cycle through the options.</p>
+  <p><strong>Click</strong> turns on a metronome with an accented downbeat.
+     <strong>Count-in</strong> gives you a bar of clicks before playback starts.</p>
+
+  <h3>Strumming patterns</h3>
+  <p>Each section can have a pattern — eight slots to a bar, down-strokes and up-strokes.
+     Pick a preset like <strong>Classic pop</strong> and then click any individual slot to
+     cycle it between down, up and skip. Up-strokes genuinely sound different: they sweep from
+     high string to low, drop the bass strings, and sit quieter.</p>
+
+  <div class="quirk watch">
+    <div class="quirk-mark">&times;</div>
+    <div>
+      <p><strong>Patterns are ignored on arpeggio chords.</strong> A strumming pattern on a broken
+         chord is a contradiction, so if a pattern seems to do nothing, check whether those chords
+         are set to Arp rather than Strum.</p>
+    </div>
+  </div>
+
+  <h3>Editing a lot of chords at once</h3>
+  <p><strong>Select chords</strong> puts checkboxes on every chord. Pick some — or use
+     <strong>All</strong>, or <strong>Select section</strong> in a section header — then apply a
+     length, style, speed or delete to the whole selection. For a long imported song this is the
+     difference between four clicks and four hundred.</p>
+  <p>The dropdown beside it applies one strumming pattern to every section at once.</p>
+
+  <h3>Sound and export</h3>
+  <p>Four tones — steel string, nylon, clean electric, and the original synth. The guitar sounds
+     are generated by modelling a plucked string, not by playing back recordings, which is why
+     they work offline and add nothing to the download.</p>
+  <p><strong>WAV</strong> renders instantly. <strong>MP3</strong> takes a moment longer.
+     <strong>Text</strong> writes out the structure, chords, lengths and any notes you've added.</p>
+</section>
+
+
+<section id="lyrics">
+  <h2>Lyrics <span class="route">/lyrics</span></h2>
+  <p class="lede">Chord sheets with the chords sitting above the words, and a performance mode
+     that scrolls them past you while both your hands are busy.</p>
+
+  <h3>Making a sheet</h3>
+  <p>Switch to <strong>Edit lyrics</strong> and type or paste the words. Switch back to
+     <strong>Chord sheet</strong> and every word becomes clickable — click the word where a chord
+     starts, then type the name or pick from the quick list.</p>
+  <p>Chords land exactly where you put them. Click one to change it, remove it, or nudge it a
+     character left or right. If two chords overlap, the left one turns amber as a warning rather
+     than silently shifting.</p>
+
+  <div class="quirk">
+    <div class="quirk-mark">o</div>
+    <div>
+      <p><strong>Hover a chord to see the shape.</strong> On a computer, resting the pointer on
+         any chord name pops up a small diagram above it — barres and all.</p>
+    </div>
+  </div>
+
+  <h3>Performance mode</h3>
+  <p>Takes over the whole screen: large type, chords above words, section names picked out.
+     <strong>Scroll</strong> starts it creeping down the page at your chosen speed, and the
+     controls fade out while it runs.</p>
+
+  <div class="keys">
+    <div><dt>Tap 4&times;</dt><dd>Tap once per line at the pace you read to set the speed</dd></div>
+    <div><dt>Slower / Faster</dt><dd>Adjust while it's running</dd></div>
+    <div><dt>T&minus; / T+</dt><dd>Text size. Long-press or right-click either to return to auto</dd></div>
+    <div><dt>Space</dt><dd>Start and stop, on a computer</dd></div>
+    <div><dt>&uarr; &darr;</dt><dd>Speed, on a computer</dd></div>
+    <div><dt>Esc</dt><dd>Leave performance mode</dd></div>
+  </div>
+
+  <p>Text size fits itself to the screen by default so a whole line stays visible. Once you
+     use <strong>T+</strong> or <strong>T&minus;</strong> your choice sticks until you reset it.</p>
+
+  <div class="quirk watch">
+    <div class="quirk-mark">&times;</div>
+    <div>
+      <p><strong>On a phone, hold a finger on the sheet to pause.</strong> It resumes when you
+         lift. Dragging scrolls by hand and leaves it parked wherever you let go — start it again
+         with the button.</p>
+      <p>Pushing the text past the auto-fit size will run long lines off the right edge. Lines
+         don't wrap yet.</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="import">
+  <h2>Import <span class="route">/import</span></h2>
+  <p class="lede">Paste a chord chart from anywhere and Fret works out which lines are chords,
+     which are lyrics, and which word each chord belongs to.</p>
+
+  <p>Select a chart on any site, copy it, paste it in, and press <strong>Read the chart</strong>.
+     Nothing is saved until you've seen the preview and chosen what to keep.</p>
+
+  <pre><span class="s">[Verse 1]</span>
+<span class="c">G                              Em</span>
+Come gather 'round people wherever you roam
+<span class="c">C                              G</span>
+And admit that the waters around you have grown</pre>
+
+  <p>You can save the result as a <strong>lyric sheet</strong>, a playable <strong>song</strong>,
+     or both. The chord positions carry across exactly — a chord at the twenty-first character
+     lands on the word at the twenty-first character.</p>
+
+  <h3>How it decides</h3>
+  <ul>
+    <li>Anything in brackets — <code>[Verse]</code>, <code>[Chorus]</code> — becomes a section.</li>
+    <li>A line where every item is a valid chord name is a chord line.</li>
+    <li>A lone letter like <code>C</code> on its own line is resolved by what follows it: chords sit above words.</li>
+    <li>Guitar tab lines are skipped, and the count is shown so you know they were dropped.</li>
+    <li>Everything else is lyrics.</li>
+  </ul>
+
+  <div class="quirk watch">
+    <div class="quirk-mark">&times;</div>
+    <div>
+      <p><strong>Check the preview.</strong> Unusual spacing, chords written inline inside a lyric,
+         and tab notation will all confuse it. The preview exists so you catch that before saving
+         rather than after.</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="settings">
+  <h2>Shared settings</h2>
+  <p class="lede">Four settings live in the Lab sidebar and follow you to every other page.</p>
+
+  <div class="keys">
+    <div><dt>Tuning</dt><dd>Standard, Drop D, Open G, DADGAD, half step down, full step down</dd></div>
+    <div><dt>Capo</dt><dd>Draws a bar on the board, greys out the frets behind it, and renames every chord to what it actually sounds like</dd></div>
+    <div><dt>Guitar tone</dt><dd>Steel string, nylon, clean electric or synth — applies to every sound the app makes</dd></div>
+    <div><dt>Handedness</dt><dd>Left mirrors every fretboard in the app, with all the labels kept readable</dd></div>
+  </div>
+
+  <div class="quirk">
+    <div class="quirk-mark">o</div>
+    <div>
+      <p><strong>The capo renames things, it doesn't just move them.</strong> Set it to the third
+         fret and a G shape is offered as B&#9837;, because that's the note coming out of the
+         guitar. Practice does the same, and tells you the capo position alongside the answer.</p>
+    </div>
+  </div>
+
+  <p>On a narrow screen the sidebar becomes the menu button in the top corner. Each page puts
+     something different in there — the Lab its settings, Strum your songs, Lyrics your sheets,
+     Practice the difficulty and your scores.</p>
+</section>
+
+
+<section id="offline">
+  <h2>Offline &amp; install</h2>
+  <p class="lede">Fret is a website that behaves like an app. Nothing it needs to run comes
+     from the internet.</p>
+
+  <p>Visit it once with a connection and it caches itself. After that it opens with the wifi
+     off — the fretboard, the chord maths, the audio, the tuner, even MP3 export. There are no
+     API keys, no fonts fetched from elsewhere and no analytics.</p>
+
+  <h3>Installing it</h3>
+  <ul>
+    <li><strong>iPhone or iPad:</strong> Share, then Add to Home Screen.</li>
+    <li><strong>Android:</strong> Chrome offers to install it, or use Add to Home Screen in the menu.</li>
+    <li><strong>Computer:</strong> Chrome shows an install icon at the right of the address bar.</li>
+  </ul>
+  <p>Installed, it opens in its own window with no browser chrome.</p>
+
+  <div class="quirk watch">
+    <div class="quirk-mark">&times;</div>
+    <div>
+      <p><strong>Installing does not back anything up.</strong> The installed app and the browser
+         tab may not even share storage. Use <strong>Back up all</strong>, and use
+         <strong>Restore</strong> on the installed copy if you want your songs there too.</p>
+    </div>
+  </div>
+</section>
+
+
+<section id="quirks">
+  <h2>Every quirk in one place</h2>
+  <p class="lede">The things that surprise people, collected. Most are deliberate.</p>
+
+  <ul>
+    <li><strong>Nothing syncs.</strong> Laptop and phone keep separate libraries. The backup file is the bridge.</li>
+    <li><strong>Clearing browsing data erases your work.</strong> Refreshing and restarting are safe.</li>
+    <li><strong>Muted and open are different states.</strong> Most misnamed chords trace back to this.</li>
+    <li><strong>The microphone only opens on a button press</strong>, and a blocked permission has to be undone in browser settings.</li>
+    <li><strong>Listening mode is forgiving by design.</strong> Right notes, any shape, any octave.</li>
+    <li><strong>Chord-change scores are on your honour.</strong> The app can't hear a buzz.</li>
+    <li><strong>Strumming patterns don't apply to arpeggio chords.</strong></li>
+    <li><strong>The capo changes chord names</strong>, not just the diagram.</li>
+    <li><strong>Long lines don't wrap in performance mode.</strong> Auto text size avoids it; overriding the size can bring it back.</li>
+    <li><strong>The import parser can be fooled</strong> by unusual spacing or inline chords. The preview is there for that.</li>
+    <li><strong>Progress needs weeks, not evenings</strong>, before it says anything useful.</li>
+    <li><strong>Chords are always spelled with sharps</strong> unless the key naturally reads flat.</li>
+  </ul>
+</section>
+
+
+<footer>
+  Fret is built to work without an account, without a subscription and without a connection.
+  Nothing you make here is sent anywhere. Back it up and it's yours.
+</footer>
+
+</main>
+</div>
+
+</body>
+</html>
