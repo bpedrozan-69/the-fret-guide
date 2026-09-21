@@ -129,6 +129,7 @@
   }
   p{ max-width:70ch; margin-bottom:13px; color:var(--bone-2); }
   p strong{ color:var(--bone); font-weight:600; }
+  p em{ font-style:italic; }
 
   ul{ max-width:70ch; margin:0 0 14px 0; list-style:none; }
   ul li{
@@ -217,6 +218,7 @@
   <div class="nav-mark">FRET</div>
   <ol>
     <li><a href="#start">Start here</a></li>
+    <li><a href="#songs">Songs</a></li>
     <li><a href="#lab">Lab</a></li>
     <li><a href="#practice">Practice</a></li>
     <li><a href="#strum">Strum</a></li>
@@ -335,6 +337,30 @@
 </section>
 
 
+<section id="songs">
+  <h2>Songs <span class="route">/songbook</span></h2>
+  <p class="lede">Everything you've written or imported, in one list.</p>
+
+  <p>Chord sheets and playable songs sit together, most recently opened first, each
+     showing the chords it uses. Search by name, or by a chord — type <code>Bm</code>
+     and you get every song with a Bm in it.</p>
+
+  <p>A sheet and a song with the same name collapse into one row with both
+     <strong>Read</strong> and <strong>Play</strong>, so importing a chart as both
+     doesn't clutter the list. Press <code>/</code> to jump to the search box.</p>
+
+  <div class="quirk">
+    <div class="quirk-mark">o</div>
+    <div>
+      <p><strong>Share a song as a link.</strong> The ⇗ on any playable song copies a
+         link that <em>contains</em> the song — it's packed into the address itself,
+         not stored on a server. Send it to your phone or to someone else and it opens
+         as their own copy.</p>
+    </div>
+  </div>
+</section>
+
+
 <section id="lab">
   <h2>Lab <span class="route">/</span></h2>
   <p class="lede">The fretboard. Put your fingers somewhere and find out what you're playing,
@@ -397,9 +423,12 @@
 
   <h3>Saving chords</h3>
   <p><strong>Save chord</strong> adds the current shape to the strip at the bottom. Click any
-     saved chord to load it back. From there, <strong>Print sheet</strong> makes a clean
-     printable page of diagrams, and <strong>Send to Strum</strong> turns the whole strip into
+     saved chord to load it back. <strong>Send to Strum</strong> turns the whole strip into
      a playable song.</p>
+
+  <p><strong>Print sheet</strong> lays them out as proper chord charts — strings vertical,
+     nut at the top, × and ○ above the strings you skip or play open, numbered dots for
+     which finger goes where, and a fret label when the shape sits up the neck.</p>
 </section>
 
 
@@ -436,9 +465,22 @@
 
   <h3>Progress</h3>
   <p>Everything you've done, gathered in one place: days practised, total questions and accuracy,
-     a bar chart of your recent drill runs with personal bests in gold, and every chord pair you've
-     drilled ranked <strong>weakest first</strong>.</p>
-  <p>That ranking is the useful part. The pairs at the top are the ones to drill next.</p>
+     and a bar chart of your recent drill runs with personal bests in gold.</p>
+
+  <p>The centrepiece is a radar web showing every chord you've drilled. Each spoke is a chord,
+     and how far it reaches from the middle is how quickly you change into it compared with your
+     own best. A balanced web means you're even; a dent means you've found a weak spot.</p>
+
+  <div class="quirk">
+    <div class="quirk-mark">o</div>
+    <div>
+      <p><strong>It works out the chord, not the pair.</strong> If you're slow on both
+         <span class="mono">F ⇄ C</span> and <span class="mono">F ⇄ G</span>, the problem is F.
+         The reading beside the web names your slowest chord and offers a button that loads
+         the drill with that chord paired against your strongest — which is the usual way to
+         drag a weak one up.</p>
+    </div>
+  </div>
 
   <div class="quirk watch">
     <div class="quirk-mark">&times;</div>
@@ -502,6 +544,23 @@
      difference between four clicks and four hundred.</p>
   <p>The dropdown beside it applies one strumming pattern to every section at once.</p>
 
+  <h3>Practising one section</h3>
+  <p>The <strong>↻</strong> in any section header loops that section on its own. A bar appears
+     where you set a starting tempo as a percentage of the song's, how much to speed up each
+     time round, and where to stop. Play, and it runs that section over and over, a little
+     faster each pass, with a breath between so you hear the change. It tells you how many
+     passes it took to reach the target.</p>
+
+  <h3>Changing key</h3>
+  <p>The <strong>Key</strong> control shifts the whole song up or down. Chord names, diagrams,
+     playback and exports all follow. It's a view, not an edit — the song is stored in its
+     original key and <strong>reset</strong> is always one click away.</p>
+
+  <h3>Keyboard</h3>
+  <p>Press <code>?</code> or hit <strong>⌨ Shortcuts</strong> for the list. Space plays and
+     stops, the arrows scrub between chords and change tempo, square brackets transpose,
+     and Esc backs out one layer at a time — loop, then selection, then edit, then stop.</p>
+
   <h3>Sound and export</h3>
   <p>Four tones — steel string, nylon, clean electric, and the original synth. The guitar sounds
      are generated by modelling a plucked string, not by playing back recordings, which is why
@@ -541,13 +600,23 @@
     <div><dt>Tap 4&times;</dt><dd>Tap once per line at the pace you read to set the speed</dd></div>
     <div><dt>Slower / Faster</dt><dd>Adjust while it's running</dd></div>
     <div><dt>T&minus; / T+</dt><dd>Text size. Long-press or right-click either to return to auto</dd></div>
-    <div><dt>Space</dt><dd>Start and stop, on a computer</dd></div>
-    <div><dt>&uarr; &darr;</dt><dd>Speed, on a computer</dd></div>
+    <div><dt>Space</dt><dd>Start and pause the scroll</dd></div>
+    <div><dt>&uarr; &darr;</dt><dd>Scroll speed</dd></div>
+    <div><dt>+ &minus;</dt><dd>Text size, with <code>0</code> for automatic</dd></div>
+    <div><dt>[ ]</dt><dd>Transpose down or up</dd></div>
+    <div><dt>T</dt><dd>Jump to the top</dd></div>
+    <div><dt>P</dt><dd>Enter performance mode from the normal view</dd></div>
+    <div><dt>?</dt><dd>Show the full list</dd></div>
     <div><dt>Esc</dt><dd>Leave performance mode</dd></div>
   </div>
 
   <p>Text size fits itself to the screen by default so a whole line stays visible. Once you
      use <strong>T+</strong> or <strong>T&minus;</strong> your choice sticks until you reset it.</p>
+
+  <h3>Changing key</h3>
+  <p>The <strong>Key</strong> control in the toolbar shifts every chord name on the sheet,
+     including in performance mode and in the text export. Like Strum, it's a view — the
+     sheet keeps its original chords and <strong>reset</strong> restores them.</p>
 
   <div class="quirk watch">
     <div class="quirk-mark">&times;</div>
@@ -567,8 +636,13 @@
   <p class="lede">Paste a chord chart from anywhere and Fret works out which lines are chords,
      which are lyrics, and which word each chord belongs to.</p>
 
-  <p>Select a chart on any site, copy it, paste it in, and press <strong>Read the chart</strong>.
-     Nothing is saved until you've seen the preview and chosen what to keep.</p>
+  <p>Select a chart on any site, copy it, paste it in, and press <strong>Save it</strong> —
+     or <code>Cmd</code>+<code>Enter</code>. It reads the chart, names it from the title or
+     first line, and saves it as both a lyric sheet and a playable song in one go.</p>
+
+  <p>The preview only appears when something needs your attention: tab lines were skipped,
+     or no sections were found. <strong>Check it first</strong> gives you the older
+     step-by-step flow whenever you want it.</p>
 
   <pre><span class="s">[Verse 1]</span>
 <span class="c">G                              Em</span>
@@ -576,8 +650,7 @@ Come gather 'round people wherever you roam
 <span class="c">C                              G</span>
 And admit that the waters around you have grown</pre>
 
-  <p>You can save the result as a <strong>lyric sheet</strong>, a playable <strong>song</strong>,
-     or both. The chord positions carry across exactly — a chord at the twenty-first character
+  <p>The chord positions carry across exactly — a chord at the twenty-first character
      lands on the word at the twenty-first character.</p>
 
   <h3>How it decides</h3>
@@ -592,9 +665,9 @@ And admit that the waters around you have grown</pre>
   <div class="quirk watch">
     <div class="quirk-mark">&times;</div>
     <div>
-      <p><strong>Check the preview.</strong> Unusual spacing, chords written inline inside a lyric,
-         and tab notation will all confuse it. The preview exists so you catch that before saving
-         rather than after.</p>
+      <p><strong>Check the preview when it appears.</strong> Unusual spacing, chords written inline
+         inside a lyric, and tab notation will all confuse it. That's exactly when the preview
+         shows itself — so you catch it before saving rather than after.</p>
     </div>
   </div>
 </section>
@@ -608,7 +681,7 @@ And admit that the waters around you have grown</pre>
     <div><dt>Tuning</dt><dd>Standard, Drop D, Open G, DADGAD, half step down, full step down</dd></div>
     <div><dt>Capo</dt><dd>Draws a bar on the board, greys out the frets behind it, and renames every chord to what it actually sounds like</dd></div>
     <div><dt>Guitar tone</dt><dd>Steel string, nylon, clean electric or synth — applies to every sound the app makes</dd></div>
-    <div><dt>Handedness</dt><dd>Left mirrors every fretboard in the app, with all the labels kept readable</dd></div>
+    <div><dt>Handedness</dt><dd>Left mirrors every fretboard in the app — Lab, Practice, Strum, Lyrics, the drill and the print sheet — with string names, finger numbers and fret numbers kept readable</dd></div>
   </div>
 
   <div class="quirk">
@@ -659,7 +732,7 @@ And admit that the waters around you have grown</pre>
   <p class="lede">The things that surprise people, collected. Most are deliberate.</p>
 
   <ul>
-    <li><strong>Nothing syncs.</strong> Laptop and phone keep separate libraries. The backup file is the bridge.</li>
+    <li><strong>Nothing syncs.</strong> Laptop and phone keep separate libraries. The backup file, or a share link, is the bridge.</li>
     <li><strong>Clearing browsing data erases your work.</strong> Refreshing and restarting are safe.</li>
     <li><strong>Muted and open are different states.</strong> Most misnamed chords trace back to this.</li>
     <li><strong>The microphone only opens on a button press</strong>, and a blocked permission has to be undone in browser settings.</li>
@@ -667,8 +740,12 @@ And admit that the waters around you have grown</pre>
     <li><strong>Chord-change scores are on your honour.</strong> The app can't hear a buzz.</li>
     <li><strong>Strumming patterns don't apply to arpeggio chords.</strong></li>
     <li><strong>The capo changes chord names</strong>, not just the diagram.</li>
+    <li><strong>Transposing is a view, not an edit.</strong> The original key is always one click away, and each song or sheet remembers its own setting.</li>
+    <li><strong>A share link holds the whole song.</strong> It's long by design, and very long songs get flagged because some chat apps cut links off.</li>
+    <li><strong>A looped section ignores its own repeat count.</strong> The loop is the repetition.</li>
     <li><strong>Long lines don't wrap in performance mode.</strong> Auto text size avoids it; overriding the size can bring it back.</li>
-    <li><strong>The import parser can be fooled</strong> by unusual spacing or inline chords. The preview is there for that.</li>
+    <li><strong>The import parser can be fooled</strong> by unusual spacing or inline chords. The preview shows up when it isn't confident.</li>
+    <li><strong>The radar compares you to yourself</strong>, not to anyone else. A full web means you're even, not that you're finished.</li>
     <li><strong>Progress needs weeks, not evenings</strong>, before it says anything useful.</li>
     <li><strong>Chords are always spelled with sharps</strong> unless the key naturally reads flat.</li>
   </ul>
